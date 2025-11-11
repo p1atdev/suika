@@ -160,13 +160,20 @@ pub fn process_fruits_to_merge(
                     // スイカだったら削除だけ
                 }
                 _ => {
-                    // TODO: スポーンする場所をいい感じにする
-                    // たまにはみ出るので...
+                    // スポーンする場所をいい感じにする
+                    // 1. 平均座標を計算する
+                    let position = {
+                        let (_, _, other_transform) = fruits_to_merge.get(other_entity).unwrap();
+                        (transform.translation.truncate() + other_transform.translation.truncate())
+                            / 2.0
+                    };
+
+                    // TODO: 2. 円周が枠をはみ出るかチェックした方がいい？
 
                     // 次のフルーツをスポーン
                     spawn_fruit(
                         next_fruit_type,
-                        transform.translation.truncate(),
+                        position,
                         &mut commands,
                         &mut meshes,
                         &mut materials,
@@ -249,7 +256,7 @@ impl Plugin for FruitsPlugin {
             commands.add_observer(observe_fruit_collisions);
         }
 
-        fn update(
+        fn spawn_fruit_on_click(
             mut commands: Commands,
             mut meshes: ResMut<Assets<Mesh>>,
             mut materials: ResMut<Assets<ColorMaterial>>,
@@ -265,6 +272,16 @@ impl Plugin for FruitsPlugin {
                     .cursor_position()
                     .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor).ok())
                 {
+                    // 座標が枠の中か？
+                    // TODO: 枠のサイズの数値をまとめて管理する
+                    if position.x < -240.0
+                        || position.x > 240.0
+                        || position.y < -290.0
+                        || position.y > 290.0
+                    {
+                        return;
+                    }
+
                     let fruit_type = FruitType::choice();
 
                     spawn_fruit(
@@ -287,8 +304,9 @@ impl Plugin for FruitsPlugin {
         app.add_systems(Startup, setup);
         app.add_systems(
             Update,
-            (update, on_added.after(update), process_fruits_to_merge),
+            (spawn_fruit_on_click, on_added.after(spawn_fruit_on_click)),
         );
+        app.add_systems(FixedUpdate, process_fruits_to_merge);
 
         app.add_plugins(MeshPickingPlugin);
 
