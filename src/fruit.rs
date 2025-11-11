@@ -7,6 +7,7 @@ pub struct Fruit;
 
 #[derive(Component, Debug, Clone, Eq, PartialEq)]
 pub enum FruitType {
+    // TODO: もうちょい多かった気がする
     Grape,
     Cherry,
     Mikan,
@@ -34,10 +35,10 @@ impl FruitType {
             FruitType::Grape => Color::hsl(270.0, 0.7, 0.6),
             FruitType::Cherry => Color::hsl(0.0, 1.0, 0.5),
             FruitType::Mikan => Color::hsl(30.0, 1.0, 0.5),
-            FruitType::Apple => Color::hsl(0.0, 0.78, 0.45),
+            FruitType::Apple => Color::hsl(2.0, 0.65, 0.5),
             FruitType::Pear => Color::hsl(60.0, 0.67, 0.70),
             FruitType::Melon => Color::hsl(120.0, 1.0, 0.75),
-            FruitType::Watermelon => Color::hsl(120.0, 0.56, 0.55),
+            FruitType::Watermelon => Color::hsl(150.0, 0.80, 0.30),
         }
     }
 
@@ -88,6 +89,7 @@ pub fn spawn_fruit(
     ));
 }
 
+/// マージ対象としてマークされたフルーツ
 #[derive(Component)]
 pub struct WillMergeFruit;
 
@@ -153,12 +155,14 @@ pub fn process_fruits_to_merge(
 
             // 次のフルーツタイプを決定
             let next_fruit_type = fruit_type.next_fruit();
-            match next_fruit_type {
+            match fruit_type {
                 FruitType::Watermelon => {
                     // スイカだったら削除だけ
-                    continue;
                 }
                 _ => {
+                    // TODO: スポーンする場所をいい感じにする
+                    // たまにはみ出るので...
+
                     // 次のフルーツをスポーン
                     spawn_fruit(
                         next_fruit_type,
@@ -175,6 +179,9 @@ pub fn process_fruits_to_merge(
             commands.entity(other_entity).despawn();
 
             processed.insert(fruit_entity);
+            processed.insert(other_entity);
+
+            // TODO: 得点計算など
         }
     }
 }
@@ -191,6 +198,8 @@ impl Plugin for FruitsPlugin {
             commands.spawn(Camera2d);
 
             let color = Color::hsl(10., 0.25, 0.7);
+
+            // TODO: あとでいい感じにまとめたい
 
             // 床を追加する
             commands.spawn((

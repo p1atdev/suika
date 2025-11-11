@@ -20,7 +20,7 @@ fn main() {
     app.add_plugins((
         DefaultPlugins,
         Wireframe2dPlugin::default(),
-        PhysicsPlugins::default(), // .with_length_unit(0.01)
+        PhysicsPlugins::default(),
     ));
     app.add_systems(Update, toggle_wireframe);
     app.add_plugins(FruitsPlugin);
